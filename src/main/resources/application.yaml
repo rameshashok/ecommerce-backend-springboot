@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: ecommerce-backend
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8081
+
+jwt:
+  secret: mySecretKey123456789012345678901234567890
+  expiration: 86400000
