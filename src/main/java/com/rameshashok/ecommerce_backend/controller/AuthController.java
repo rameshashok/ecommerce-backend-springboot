@@ -2,6 +2,7 @@ package com.rameshashok.ecommerce_backend.controller;
 
 import com.rameshashok.ecommerce_backend.dto.*;
 import com.rameshashok.ecommerce_backend.entity.User;
+import com.rameshashok.ecommerce_backend.exception.BusinessException;
 import com.rameshashok.ecommerce_backend.repository.UserRepository;
 import com.rameshashok.ecommerce_backend.config.JwtUtils;
 import com.rameshashok.ecommerce_backend.service.UserPrincipal;
@@ -51,7 +52,8 @@ public class AuthController {
         String jwt = jwtUtils.generateJwtToken(authentication);
         
         UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
-        User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new BusinessException("User not found"));
         
         return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getId(), 
                 userDetails.getUsername(), user.getFirstName(), user.getLastName()));
@@ -66,7 +68,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest signUpRequest) {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.badRequest().body("Error: Email is already in use!");
+            throw new BusinessException("Email is already in use!");
         }
         
         User user = new User();

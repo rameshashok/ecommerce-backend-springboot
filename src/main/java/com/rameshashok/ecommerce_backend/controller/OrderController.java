@@ -1,6 +1,7 @@
 package com.rameshashok.ecommerce_backend.controller;
 
 import com.rameshashok.ecommerce_backend.entity.Order;
+import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
 import com.rameshashok.ecommerce_backend.repository.OrderRepository;
 import com.rameshashok.ecommerce_backend.service.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST controller for order management operations.
@@ -56,8 +56,9 @@ public class OrderController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        Optional<Order> order = orderRepository.findById(id);
-        return order.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        return ResponseEntity.ok(order);
     }
     
     /**
@@ -82,12 +83,10 @@ public class OrderController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestBody Order orderDetails) {
-        Optional<Order> optionalOrder = orderRepository.findById(id);
-        if (optionalOrder.isPresent()) {
-            Order order = optionalOrder.get();
-            order.setStatus(orderDetails.getStatus());
-            return ResponseEntity.ok(orderRepository.save(order));
-        }
-        return ResponseEntity.notFound().build();
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        
+        order.setStatus(orderDetails.getStatus());
+        return ResponseEntity.ok(orderRepository.save(order));
     }
 }

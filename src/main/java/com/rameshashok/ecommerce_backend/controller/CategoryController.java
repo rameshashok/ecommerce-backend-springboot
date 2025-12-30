@@ -1,13 +1,13 @@
 package com.rameshashok.ecommerce_backend.controller;
 
 import com.rameshashok.ecommerce_backend.entity.Category;
+import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
 import com.rameshashok.ecommerce_backend.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST controller for category management operations.
@@ -39,8 +39,9 @@ public class CategoryController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
-        Optional<Category> category = categoryRepository.findById(id);
-        return category.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        return ResponseEntity.ok(category);
     }
     
     /**
@@ -65,14 +66,13 @@ public class CategoryController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category categoryDetails) {
-        Optional<Category> optionalCategory = categoryRepository.findById(id);
-        if (optionalCategory.isPresent()) {
-            Category category = optionalCategory.get();
-            category.setName(categoryDetails.getName());
-            category.setDescription(categoryDetails.getDescription());
-            return ResponseEntity.ok(categoryRepository.save(category));
-        }
-        return ResponseEntity.notFound().build();
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        
+        category.setName(categoryDetails.getName());
+        category.setDescription(categoryDetails.getDescription());
+        
+        return ResponseEntity.ok(categoryRepository.save(category));
     }
     
     /**
@@ -84,10 +84,10 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
-        if (categoryRepository.existsById(id)) {
-            categoryRepository.deleteById(id);
-            return ResponseEntity.ok().build();
+        if (!categoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Category not found with id: " + id);
         }
-        return ResponseEntity.notFound().build();
+        categoryRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }
