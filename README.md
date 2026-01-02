@@ -9,6 +9,9 @@ A Spring Boot REST API for an ecommerce application with JWT authentication, pro
 - **Order Management**: Create and track customer orders
 - **Role-based Access**: Admin and User roles with different permissions
 - **Database Integration**: H2 in-memory database with JPA/Hibernate
+- **Error Handling**: Centralized exception handling with custom error responses
+- **Testing**: Comprehensive unit and integration tests with JaCoCo coverage
+- **CI/CD**: GitHub Actions workflow with automated testing
 
 ## Tech Stack
 
@@ -30,9 +33,9 @@ A Spring Boot REST API for an ecommerce application with JWT authentication, pro
 mvn spring-boot:run
 ```
 
-The application will start on `http://localhost:8080`
+The application will start on `http://localhost:8081`
 
-**H2 Console**: Available at `http://localhost:8080/h2-console`
+**H2 Console**: Available at `http://localhost:8081/h2-console`
 - JDBC URL: `jdbc:h2:mem:testdb`
 - Username: `sa`
 - Password: `password`
@@ -108,6 +111,21 @@ POST /api/products
   }
 }
 ```
+
+## Testing
+
+### Run Tests
+```bash
+mvn test
+```
+
+### Run Tests with Coverage
+```bash
+mvn test jacoco:report
+```
+
+### Coverage Report
+After running tests, view coverage report at `target/site/jacoco/index.html`
 
 ## Authentication
 
