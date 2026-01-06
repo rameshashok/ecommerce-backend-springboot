@@ -1,9 +1,12 @@
 package com.rameshashok.ecommerce_backend.service;
 
 import com.rameshashok.ecommerce_backend.entity.Order;
+import com.rameshashok.ecommerce_backend.entity.OrderItem;
+import com.rameshashok.ecommerce_backend.entity.Product;
 import com.rameshashok.ecommerce_backend.entity.User;
 import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
 import com.rameshashok.ecommerce_backend.repository.OrderRepository;
+import com.rameshashok.ecommerce_backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,7 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
 
     /**
      * Retrieves all orders (admin only).
@@ -66,13 +70,34 @@ public class OrderService {
     }
 
     /**
-     * Creates a new order.
+     * Creates a new order with inventory management.
+     * Validates stock availability and updates inventory automatically.
      * 
      * @param order the order to create
      * @return the created order
+     * @throws RuntimeException if insufficient stock
      */
     @Transactional
     public Order createOrder(Order order) {
+        // Process each order item and update inventory
+        for (OrderItem orderItem : order.getOrderItems()) {
+            Product product = productRepository.findById(orderItem.getProduct().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + orderItem.getProduct().getId()));
+            
+            // Check stock availability
+            if (product.getStockQuantity() < orderItem.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for " + product.getName() + 
+                        ". Available: " + product.getStockQuantity() + ", Requested: " + orderItem.getQuantity());
+            }
+            
+            // Update inventory
+            product.setStockQuantity(product.getStockQuantity() - orderItem.getQuantity());
+            productRepository.save(product);
+            
+            // Set the order reference for the order item
+            orderItem.setOrder(order);
+        }
+        
         return orderRepository.save(order);
     }
 

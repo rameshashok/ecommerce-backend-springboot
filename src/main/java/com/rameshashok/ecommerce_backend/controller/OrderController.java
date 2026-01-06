@@ -1,10 +1,11 @@
 package com.rameshashok.ecommerce_backend.controller;
 
 import com.rameshashok.ecommerce_backend.entity.Order;
-import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
-import com.rameshashok.ecommerce_backend.repository.OrderRepository;
+import com.rameshashok.ecommerce_backend.entity.User;
+import com.rameshashok.ecommerce_backend.service.OrderService;
 import com.rameshashok.ecommerce_backend.service.UserPrincipal;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.rameshashok.ecommerce_backend.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -18,10 +19,11 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/orders")
+@RequiredArgsConstructor
 public class OrderController {
     
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderService orderService;
+    private final UserService userService;
     
     /**
      * Retrieves all orders for the authenticated user.
@@ -33,7 +35,8 @@ public class OrderController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public List<Order> getUserOrders(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        return orderRepository.findByUserId(userPrincipal.getId());
+        User user = userService.getUserById(userPrincipal.getId());
+        return orderService.getOrdersByUser(user);
     }
     
     /**
@@ -44,7 +47,7 @@ public class OrderController {
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+        return orderService.getAllOrders();
     }
     
     /**
@@ -56,21 +59,24 @@ public class OrderController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        Order order = orderService.getOrderById(id);
         return ResponseEntity.ok(order);
     }
     
     /**
-     * Creates a new order.
+     * Creates a new order with automatic inventory management.
      * 
      * @param order the order data to create
+     * @param authentication the authentication context
      * @return the created order
      */
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public Order createOrder(@RequestBody Order order) {
-        return orderRepository.save(order);
+    public Order createOrder(@RequestBody Order order, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        User user = userService.getUserById(userPrincipal.getId());
+        order.setUser(user);
+        return orderService.createOrder(order);
     }
     
     /**
@@ -83,10 +89,7 @@ public class OrderController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestBody Order orderDetails) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        
-        order.setStatus(orderDetails.getStatus());
-        return ResponseEntity.ok(orderRepository.save(order));
+        Order order = orderService.updateOrderStatus(id, orderDetails.getStatus());
+        return ResponseEntity.ok(order);
     }
 }

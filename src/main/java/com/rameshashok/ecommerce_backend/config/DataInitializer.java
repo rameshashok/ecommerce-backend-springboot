@@ -33,37 +33,37 @@ public class DataInitializer implements CommandLineRunner {
 
         // Create products
         createProduct("iPhone 15", "Latest Apple smartphone with advanced features", 
-                     new BigDecimal("999.99"), 25, "https://example.com/iphone15.jpg", electronics);
+                     new BigDecimal("999.99"), 25, "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400", electronics);
         
         createProduct("Samsung Galaxy S24", "Premium Android smartphone", 
-                     new BigDecimal("899.99"), 30, "https://example.com/galaxy-s24.jpg", electronics);
+                     new BigDecimal("899.99"), 30, "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400", electronics);
         
         createProduct("MacBook Pro", "Professional laptop for developers", 
-                     new BigDecimal("1999.99"), 15, "https://example.com/macbook.jpg", electronics);
+                     new BigDecimal("1999.99"), 15, "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400", electronics);
         
         createProduct("Wireless Headphones", "Noise-cancelling Bluetooth headphones", 
-                     new BigDecimal("199.99"), 50, "https://example.com/headphones.jpg", electronics);
+                     new BigDecimal("199.99"), 50, "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", electronics);
 
         createProduct("Cotton T-Shirt", "Comfortable cotton t-shirt", 
-                     new BigDecimal("29.99"), 100, "https://example.com/tshirt.jpg", clothing);
+                     new BigDecimal("29.99"), 100, "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", clothing);
         
         createProduct("Jeans", "Classic blue denim jeans", 
-                     new BigDecimal("79.99"), 75, "https://example.com/jeans.jpg", clothing);
+                     new BigDecimal("79.99"), 75, "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400", clothing);
         
         createProduct("Sneakers", "Comfortable running sneakers", 
-                     new BigDecimal("129.99"), 40, "https://example.com/sneakers.jpg", clothing);
+                     new BigDecimal("129.99"), 40, "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400", clothing);
 
         createProduct("Java Programming Book", "Complete guide to Java programming", 
-                     new BigDecimal("49.99"), 60, "https://example.com/java-book.jpg", books);
+                     new BigDecimal("49.99"), 60, "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400", books);
         
         createProduct("Spring Boot in Action", "Learn Spring Boot framework", 
-                     new BigDecimal("59.99"), 35, "https://example.com/spring-book.jpg", books);
+                     new BigDecimal("59.99"), 35, "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400", books);
 
         createProduct("Coffee Maker", "Automatic drip coffee maker", 
-                     new BigDecimal("89.99"), 20, "https://example.com/coffee-maker.jpg", home);
+                     new BigDecimal("89.99"), 20, "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400", home);
         
         createProduct("Garden Tools Set", "Complete set of gardening tools", 
-                     new BigDecimal("149.99"), 25, "https://example.com/garden-tools.jpg", home);
+                     new BigDecimal("149.99"), 25, "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400", home);
     }
 
     private Category createCategory(String name, String description) {
