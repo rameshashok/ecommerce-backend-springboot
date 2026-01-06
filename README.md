@@ -5,13 +5,15 @@ A Spring Boot REST API for an ecommerce application with JWT authentication, pro
 ## Features
 
 - **User Authentication**: JWT-based authentication with registration and login
-- **Product Management**: CRUD operations for products with category support
+- **Product Management**: CRUD operations for products with category support and pagination
 - **Order Management**: Create and track customer orders
 - **Role-based Access**: Admin and User roles with different permissions
 - **Database Integration**: H2 in-memory database with JPA/Hibernate
 - **Error Handling**: Centralized exception handling with custom error responses
 - **Testing**: Comprehensive unit and integration tests with JaCoCo coverage
 - **CI/CD**: GitHub Actions workflow with automated testing
+- **Containerization**: Docker support with docker-compose
+- **Infrastructure**: Terraform configuration for cloud deployment
 
 ## Tech Stack
 
@@ -21,6 +23,16 @@ A Spring Boot REST API for an ecommerce application with JWT authentication, pro
 - H2 Database
 - Lombok
 - Maven
+- Docker
+- Terraform
+
+## Architecture
+
+- **Controller Layer**: REST endpoints with validation
+- **Service Layer**: Business logic and transaction management
+- **Repository Layer**: Data access with Spring Data JPA
+- **DTO Layer**: Request/response objects with validation
+- **Configuration**: JWT properties and security configuration
 
 ## Setup Instructions
 
@@ -28,9 +40,19 @@ A Spring Boot REST API for an ecommerce application with JWT authentication, pro
 - Java 17
 - Maven
 
+### Running with Docker
+```bash
+docker-compose up -d
+```
+
 ### Running the Application
 ```bash
 mvn spring-boot:run
+```
+
+Or use the provided script:
+```bash
+start.bat
 ```
 
 The application will start on `http://localhost:8081`
@@ -106,10 +128,24 @@ POST /api/products
   "price": 699.99,
   "stockQuantity": 50,
   "imageUrl": "https://example.com/image.jpg",
-  "category": {
-    "id": 1
-  }
+  "categoryId": 1
 }
+```
+
+## Deployment
+
+### Docker Deployment
+```bash
+docker build -t ecommerce-backend .
+docker run -p 8081:8081 ecommerce-backend
+```
+
+### Terraform Infrastructure
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
 ```
 
 ## Testing

@@ -1,9 +1,15 @@
 package com.rameshashok.ecommerce_backend.controller;
 
+import com.rameshashok.ecommerce_backend.dto.ProductRequest;
+import com.rameshashok.ecommerce_backend.entity.Category;
 import com.rameshashok.ecommerce_backend.entity.Product;
-import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
-import com.rameshashok.ecommerce_backend.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.rameshashok.ecommerce_backend.service.CategoryService;
+import com.rameshashok.ecommerce_backend.service.ProductService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +22,11 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/products")
+@RequiredArgsConstructor
 public class ProductController {
     
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductService productService;
+    private final CategoryService categoryService;
     
     /**
      * Retrieves all products from the catalog.
@@ -27,8 +34,12 @@ public class ProductController {
      * @return List of all products
      */
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
+        if (pageable.isPaged()) {
+            Page<Product> products = productService.getAllProducts(pageable);
+            return ResponseEntity.ok(products.getContent());
+        }
+        return ResponseEntity.ok(productService.getAllProducts());
     }
     
     /**
@@ -39,8 +50,7 @@ public class ProductController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        Product product = productService.getProductById(id);
         return ResponseEntity.ok(product);
     }
     
@@ -51,8 +61,9 @@ public class ProductController {
      * @return List of products in the specified category
      */
     @GetMapping("/category/{categoryId}")
-    public List<Product> getProductsByCategory(@PathVariable Long categoryId) {
-        return productRepository.findByCategoryId(categoryId);
+    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable Long categoryId) {
+        List<Product> products = productService.getProductsByCategory(categoryId);
+        return ResponseEntity.ok(products);
     }
     
     /**
@@ -62,8 +73,9 @@ public class ProductController {
      * @return List of products matching the search criteria
      */
     @GetMapping("/search")
-    public List<Product> searchProducts(@RequestParam String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam String name) {
+        List<Product> products = productService.searchProductsByName(name);
+        return ResponseEntity.ok(products);
     }
     
     /**
@@ -74,8 +86,19 @@ public class ProductController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Product createProduct(@RequestBody Product product) {
-        return productRepository.save(product);
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequest request) {
+        Category category = categoryService.getCategoryById(request.getCategoryId());
+        
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStockQuantity(request.getStockQuantity());
+        product.setImageUrl(request.getImageUrl());
+        product.setCategory(category);
+        
+        Product createdProduct = productService.createProduct(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
     }
     
     /**
@@ -87,18 +110,19 @@ public class ProductController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+        Category category = categoryService.getCategoryById(request.getCategoryId());
         
-        product.setName(productDetails.getName());
-        product.setDescription(productDetails.getDescription());
-        product.setPrice(productDetails.getPrice());
-        product.setStockQuantity(productDetails.getStockQuantity());
-        product.setImageUrl(productDetails.getImageUrl());
-        product.setCategory(productDetails.getCategory());
+        Product productDetails = new Product();
+        productDetails.setName(request.getName());
+        productDetails.setDescription(request.getDescription());
+        productDetails.setPrice(request.getPrice());
+        productDetails.setStockQuantity(request.getStockQuantity());
+        productDetails.setImageUrl(request.getImageUrl());
+        productDetails.setCategory(category);
         
-        return ResponseEntity.ok(productRepository.save(product));
+        Product updatedProduct = productService.updateProduct(id, productDetails);
+        return ResponseEntity.ok(updatedProduct);
     }
     
     /**
@@ -109,11 +133,8 @@ public class ProductController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Product not found with id: " + id);
-        }
-        productRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 }

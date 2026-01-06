@@ -3,24 +3,32 @@ package com.rameshashok.ecommerce_backend.config;
 import com.rameshashok.ecommerce_backend.service.UserPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class JwtUtilsTest {
 
+    @Mock
+    private JwtProperties jwtProperties;
+
+    @InjectMocks
     private JwtUtils jwtUtils;
 
     @BeforeEach
     void setUp() {
-        jwtUtils = new JwtUtils();
-        ReflectionTestUtils.setField(jwtUtils, "jwtSecret", "testSecretKeyForJwtTokenGenerationAndValidation");
-        ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 86400000);
+        when(jwtProperties.getSecret()).thenReturn("testSecretKeyForJwtTokenGenerationAndValidation");
+        when(jwtProperties.getExpiration()).thenReturn(86400000L);
     }
 
     @Test

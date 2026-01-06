@@ -2,7 +2,7 @@ package com.rameshashok.ecommerce_backend.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -14,13 +14,10 @@ import java.util.Date;
  * Handles JWT token generation, validation, and extraction of user information.
  */
 @Component
+@RequiredArgsConstructor
 public class JwtUtils {
     
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-    
-    @Value("${jwt.expiration}")
-    private int jwtExpirationMs;
+    private final JwtProperties jwtProperties;
     
     /**
      * Creates the signing key for JWT tokens using HMAC-SHA algorithm.
@@ -28,7 +25,7 @@ public class JwtUtils {
      * @return the signing key
      */
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
     }
     
     /**
@@ -42,7 +39,7 @@ public class JwtUtils {
         return Jwts.builder()
                 .setSubject(userPrincipal.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + jwtExpirationMs))
+                .setExpiration(new Date(new Date().getTime() + jwtProperties.getExpiration()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

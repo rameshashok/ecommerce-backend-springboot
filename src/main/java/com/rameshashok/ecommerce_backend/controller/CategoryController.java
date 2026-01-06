@@ -1,9 +1,11 @@
 package com.rameshashok.ecommerce_backend.controller;
 
+import com.rameshashok.ecommerce_backend.dto.CategoryRequest;
 import com.rameshashok.ecommerce_backend.entity.Category;
-import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
-import com.rameshashok.ecommerce_backend.repository.CategoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.rameshashok.ecommerce_backend.service.CategoryService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +18,10 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/categories")
+@RequiredArgsConstructor
 public class CategoryController {
     
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
     
     /**
      * Retrieves all categories.
@@ -27,8 +29,9 @@ public class CategoryController {
      * @return List of all categories
      */
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
     }
     
     /**
@@ -39,8 +42,7 @@ public class CategoryController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        Category category = categoryService.getCategoryById(id);
         return ResponseEntity.ok(category);
     }
     
@@ -52,8 +54,13 @@ public class CategoryController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Category createCategory(@RequestBody Category category) {
-        return categoryRepository.save(category);
+    public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryRequest request) {
+        Category category = new Category();
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+        
+        Category createdCategory = categoryService.createCategory(category);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
     }
     
     /**
@@ -65,14 +72,13 @@ public class CategoryController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category categoryDetails) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+        Category categoryDetails = new Category();
+        categoryDetails.setName(request.getName());
+        categoryDetails.setDescription(request.getDescription());
         
-        category.setName(categoryDetails.getName());
-        category.setDescription(categoryDetails.getDescription());
-        
-        return ResponseEntity.ok(categoryRepository.save(category));
+        Category updatedCategory = categoryService.updateCategory(id, categoryDetails);
+        return ResponseEntity.ok(updatedCategory);
     }
     
     /**
@@ -83,11 +89,8 @@ public class CategoryController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Category not found with id: " + id);
-        }
-        categoryRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.noContent().build();
     }
 }
