@@ -99,6 +99,10 @@ The application will start on `http://localhost:8081`
 
 ## Sample Data
 
+The application automatically loads dummy data on startup including:
+- 4 categories: Electronics, Clothing, Books, Home & Garden
+- 11 products across different categories with realistic pricing
+
 ### Register User
 ```json
 POST /api/auth/signup
