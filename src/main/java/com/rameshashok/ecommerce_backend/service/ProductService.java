@@ -103,7 +103,8 @@ public class ProductService {
      */
     @Transactional
     public Product updateProduct(Long id, Product productDetails) {
-        Product product = getProductById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         product.setName(productDetails.getName());
         product.setDescription(productDetails.getDescription());
         product.setPrice(productDetails.getPrice());
