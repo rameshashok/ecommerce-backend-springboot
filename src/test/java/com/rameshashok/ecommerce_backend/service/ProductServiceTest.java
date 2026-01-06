@@ -1,5 +1,6 @@
 package com.rameshashok.ecommerce_backend.service;
 
+import com.rameshashok.ecommerce_backend.dto.ProductResponse;
 import com.rameshashok.ecommerce_backend.entity.Category;
 import com.rameshashok.ecommerce_backend.entity.Product;
 import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
@@ -55,7 +56,7 @@ class ProductServiceTest {
         List<Product> products = Arrays.asList(product);
         when(productRepository.findAll()).thenReturn(products);
 
-        List<Product> result = productService.getAllProducts();
+        List<ProductResponse> result = productService.getAllProducts();
 
         assertEquals(1, result.size());
         assertEquals(product.getName(), result.get(0).getName());
@@ -68,7 +69,7 @@ class ProductServiceTest {
         Page<Product> productPage = new PageImpl<>(Arrays.asList(product));
         when(productRepository.findAll(pageable)).thenReturn(productPage);
 
-        Page<Product> result = productService.getAllProducts(pageable);
+        Page<ProductResponse> result = productService.getAllProducts(pageable);
 
         assertEquals(1, result.getContent().size());
         assertEquals(product.getName(), result.getContent().get(0).getName());
@@ -79,7 +80,7 @@ class ProductServiceTest {
     void getProductById_WhenExists_ShouldReturnProduct() {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
-        Product result = productService.getProductById(1L);
+        ProductResponse result = productService.getProductById(1L);
 
         assertEquals(product.getName(), result.getName());
         verify(productRepository).findById(1L);
@@ -98,7 +99,7 @@ class ProductServiceTest {
         List<Product> products = Arrays.asList(product);
         when(productRepository.findByCategoryId(1L)).thenReturn(products);
 
-        List<Product> result = productService.getProductsByCategory(1L);
+        List<ProductResponse> result = productService.getProductsByCategory(1L);
 
         assertEquals(1, result.size());
         assertEquals(product.getName(), result.get(0).getName());
@@ -110,7 +111,7 @@ class ProductServiceTest {
         List<Product> products = Arrays.asList(product);
         when(productRepository.findByNameContainingIgnoreCase("phone")).thenReturn(products);
 
-        List<Product> result = productService.searchProductsByName("phone");
+        List<ProductResponse> result = productService.searchProductsByName("phone");
 
         assertEquals(1, result.size());
         assertEquals(product.getName(), result.get(0).getName());
