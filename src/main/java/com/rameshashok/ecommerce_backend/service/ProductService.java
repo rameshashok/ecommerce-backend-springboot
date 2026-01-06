@@ -1,5 +1,6 @@
 package com.rameshashok.ecommerce_backend.service;
 
+import com.rameshashok.ecommerce_backend.dto.ProductResponse;
 import com.rameshashok.ecommerce_backend.entity.Product;
 import com.rameshashok.ecommerce_backend.exception.ResourceNotFoundException;
 import com.rameshashok.ecommerce_backend.repository.ProductRepository;
@@ -23,54 +24,62 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     /**
-     * Retrieves all products.
+     * Retrieves all products as DTOs.
      * 
-     * @return list of all products
+     * @return list of all products as DTOs
      */
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts() {
+        return productRepository.findAll().stream()
+                .map(this::convertToResponse)
+                .toList();
     }
 
     /**
-     * Retrieves products with pagination.
+     * Retrieves products with pagination as DTOs.
      * 
      * @param pageable pagination information
-     * @return page of products
+     * @return page of products as DTOs
      */
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable);
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(this::convertToResponse);
     }
 
     /**
-     * Retrieves a product by its ID.
+     * Retrieves a product by its ID as DTO.
      * 
      * @param id the product ID
-     * @return the product
+     * @return the product as DTO
      * @throws ResourceNotFoundException if product not found
      */
-    public Product getProductById(Long id) {
-        return productRepository.findById(id)
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        return convertToResponse(product);
     }
 
     /**
-     * Retrieves products by category ID.
+     * Retrieves products by category ID as DTOs.
      * 
      * @param categoryId the category ID
-     * @return list of products in the category
+     * @return list of products in the category as DTOs
      */
-    public List<Product> getProductsByCategory(Long categoryId) {
-        return productRepository.findByCategoryId(categoryId);
+    public List<ProductResponse> getProductsByCategory(Long categoryId) {
+        return productRepository.findByCategoryId(categoryId).stream()
+                .map(this::convertToResponse)
+                .toList();
     }
 
     /**
-     * Searches products by name (case-insensitive).
+     * Searches products by name (case-insensitive) as DTOs.
      * 
      * @param name the search term
-     * @return list of matching products
+     * @return list of matching products as DTOs
      */
-    public List<Product> searchProductsByName(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
+    public List<ProductResponse> searchProductsByName(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name).stream()
+                .map(this::convertToResponse)
+                .toList();
     }
 
     /**
@@ -112,7 +121,29 @@ public class ProductService {
      */
     @Transactional
     public void deleteProduct(Long id) {
-        Product product = getProductById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         productRepository.delete(product);
+    }
+
+    /**
+     * Converts Product entity to ProductResponse DTO.
+     * 
+     * @param product the product entity
+     * @return the product response DTO
+     */
+    private ProductResponse convertToResponse(Product product) {
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStockQuantity(),
+                product.getImageUrl(),
+                product.getCategory() != null ? product.getCategory().getId() : null,
+                product.getCategory() != null ? product.getCategory().getName() : null,
+                product.getCreatedAt(),
+                product.getUpdatedAt()
+        );
     }
 }

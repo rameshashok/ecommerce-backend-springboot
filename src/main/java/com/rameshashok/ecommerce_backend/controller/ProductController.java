@@ -1,6 +1,7 @@
 package com.rameshashok.ecommerce_backend.controller;
 
 import com.rameshashok.ecommerce_backend.dto.ProductRequest;
+import com.rameshashok.ecommerce_backend.dto.ProductResponse;
 import com.rameshashok.ecommerce_backend.entity.Category;
 import com.rameshashok.ecommerce_backend.entity.Product;
 import com.rameshashok.ecommerce_backend.service.CategoryService;
@@ -34,9 +35,9 @@ public class ProductController {
      * @return List of all products
      */
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
+    public ResponseEntity<List<ProductResponse>> getAllProducts(Pageable pageable) {
         if (pageable.isPaged()) {
-            Page<Product> products = productService.getAllProducts(pageable);
+            Page<ProductResponse> products = productService.getAllProducts(pageable);
             return ResponseEntity.ok(products.getContent());
         }
         return ResponseEntity.ok(productService.getAllProducts());
@@ -49,8 +50,8 @@ public class ProductController {
      * @return ResponseEntity containing the product if found, or 404 if not found
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Product product = productService.getProductById(id);
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+        ProductResponse product = productService.getProductById(id);
         return ResponseEntity.ok(product);
     }
     
@@ -61,8 +62,8 @@ public class ProductController {
      * @return List of products in the specified category
      */
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable Long categoryId) {
-        List<Product> products = productService.getProductsByCategory(categoryId);
+    public ResponseEntity<List<ProductResponse>> getProductsByCategory(@PathVariable Long categoryId) {
+        List<ProductResponse> products = productService.getProductsByCategory(categoryId);
         return ResponseEntity.ok(products);
     }
     
@@ -73,8 +74,8 @@ public class ProductController {
      * @return List of products matching the search criteria
      */
     @GetMapping("/search")
-    public ResponseEntity<List<Product>> searchProducts(@RequestParam String name) {
-        List<Product> products = productService.searchProductsByName(name);
+    public ResponseEntity<List<ProductResponse>> searchProducts(@RequestParam String name) {
+        List<ProductResponse> products = productService.searchProductsByName(name);
         return ResponseEntity.ok(products);
     }
     
@@ -86,7 +87,7 @@ public class ProductController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {
         Category category = categoryService.getCategoryById(request.getCategoryId());
         
         Product product = new Product();
@@ -98,7 +99,19 @@ public class ProductController {
         product.setCategory(category);
         
         Product createdProduct = productService.createProduct(product);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+        ProductResponse response = new ProductResponse(
+                createdProduct.getId(),
+                createdProduct.getName(),
+                createdProduct.getDescription(),
+                createdProduct.getPrice(),
+                createdProduct.getStockQuantity(),
+                createdProduct.getImageUrl(),
+                createdProduct.getCategory().getId(),
+                createdProduct.getCategory().getName(),
+                createdProduct.getCreatedAt(),
+                createdProduct.getUpdatedAt()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
     /**
@@ -110,7 +123,7 @@ public class ProductController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         Category category = categoryService.getCategoryById(request.getCategoryId());
         
         Product productDetails = new Product();
@@ -122,7 +135,19 @@ public class ProductController {
         productDetails.setCategory(category);
         
         Product updatedProduct = productService.updateProduct(id, productDetails);
-        return ResponseEntity.ok(updatedProduct);
+        ProductResponse response = new ProductResponse(
+                updatedProduct.getId(),
+                updatedProduct.getName(),
+                updatedProduct.getDescription(),
+                updatedProduct.getPrice(),
+                updatedProduct.getStockQuantity(),
+                updatedProduct.getImageUrl(),
+                updatedProduct.getCategory().getId(),
+                updatedProduct.getCategory().getName(),
+                updatedProduct.getCreatedAt(),
+                updatedProduct.getUpdatedAt()
+        );
+        return ResponseEntity.ok(response);
     }
     
     /**

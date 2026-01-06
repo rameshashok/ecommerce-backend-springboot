@@ -1,5 +1,6 @@
 package com.rameshashok.ecommerce_backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,6 +45,7 @@ public class Product {
     /** Category this product belongs to */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
+    @JsonIgnoreProperties("products")
     private Category category;
     
     /** Timestamp when the product was created */
